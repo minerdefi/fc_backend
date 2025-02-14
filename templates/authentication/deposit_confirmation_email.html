@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container { padding: 20px; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo { width: 200px; height: auto; margin-bottom: 15px; }
+        .company-name { color: #1E293B; font-size: 28px; font-weight: bold; margin: 10px 0; }
+        .details { margin: 20px 0; background: #F8FAFC; padding: 20px; border-radius: 8px; }
+        .amount { font-size: 24px; color: #10B981; font-weight: bold; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #E2E8F0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://forbes-capital.com/logo.png" alt="Forbes Capital" class="logo"/>
+            <div class="company-name">Forbes Capital</div>
+        </div>
+        
+        <p>Dear {{ user.first_name }},</p>
+        <p>Your deposit has been successfully processed:</p>
+        
+        <div class="details">
+            <p>Amount: <span class="amount">${{ amount }}</span></p>
+            <p>Payment Method: {{ payment_type }}</p>
+            <p>Deposit Type: {{ deposit_type }}</p>
+            <p>Transaction ID: {{ transaction_id }}</p>
+            <p>Date: {{ date }}</p>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for choosing Forbes Capital.</p>
+            <p style="color: #64748B; font-size: 12px;">© 2025 Forbes Capital. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
