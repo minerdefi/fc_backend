@@ -35,6 +35,63 @@ from django.contrib.auth.hashers import check_password
 import jwt
 from datetime import datetime, timedelta
 
+
+
+
+def notify_admin_email_verification(user):
+    subject = 'New Email Verification'
+    message = f"""
+    A user has verified their email address:
+    Username: {user.username}
+    Email: {user.email}
+    Time: {user.emailverification.verified_at}
+    """
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [settings.ADMIN_EMAIL],
+        fail_silently=True
+    )
+
+def notify_admin_deposit(deposit):
+    subject = 'New Deposit Request'
+    message = f"""
+    A new deposit has been initiated:
+    User: {deposit.user.username}
+    Amount: ${deposit.amount}
+    Payment Type: {deposit.payment_type}
+    Deposit Type: {deposit.deposit_type}
+    Transaction ID: {deposit.transaction_id}
+    Time: {deposit.created_at}
+    """
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [settings.ADMIN_EMAIL],
+        fail_silently=True
+    )
+
+def notify_admin_withdrawal(withdrawal):
+    subject = 'New Withdrawal Request'
+    message = f"""
+    A new withdrawal has been requested:
+    User: {withdrawal.user.username}
+    Amount: ${withdrawal.amount}
+    Payment Method: {withdrawal.payment_method}
+    Wallet Address: {withdrawal.wallet_address}
+    Time: {withdrawal.created_at}
+    """
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [settings.ADMIN_EMAIL],
+        fail_silently=True
+    )
+
+
 logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
@@ -86,23 +143,35 @@ def register_user(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_user(request):
-    serializer = UserLoginSerializer(data=request.data)
-    if serializer.is_valid():
+    try:
+        print("Login request data:", request.data)  # Debug log
+        serializer = UserLoginSerializer(data=request.data)
+        
+        if not serializer.is_valid():
+            print("Serializer errors:", serializer.errors)  # Debug log
+            return Response({
+                'status': 'error',
+                'message': 'Invalid data provided',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         login = serializer.validated_data['login']
         password = serializer.validated_data['password']
         
+        print(f"Attempting login for: {login}")  # Debug log
+        
         try:
-            # First, find the user by either username or email
+            # Find user by email or username
             user = User.objects.get(Q(username=login) | Q(email=login))
-            # Then authenticate using the found username
             authenticated_user = authenticate(username=user.username, password=password)
             
             if authenticated_user:
                 refresh = RefreshToken.for_user(authenticated_user)
-                return Response({
+                response_data = {
                     'status': 'success',
                     'data': {
                         'user': {
+                            'id': user.id,  # Added id
                             'username': user.username,
                             'email': user.email,
                             'first_name': user.first_name,
@@ -113,24 +182,29 @@ def login_user(request):
                             'access': str(refresh.access_token),
                         }
                     }
-                })
+                }
+                print("Login successful:", response_data)  # Debug log
+                return Response(response_data)
             else:
+                print(f"Authentication failed for user: {user.username}")
                 return Response({
                     'status': 'error',
-                    'message': 'Invalid password'
+                    'message': 'Invalid credentials'
                 }, status=status.HTTP_401_UNAUTHORIZED)
                 
         except User.DoesNotExist:
+            print(f"No user found with login: {login}")
             return Response({
                 'status': 'error',
-                'message': 'No account found with this username or email'
+                'message': 'No account found with these credentials'
             }, status=status.HTTP_401_UNAUTHORIZED)
-            
-    return Response({
-        'status': 'error',
-        'message': 'Invalid credentials',
-        'errors': serializer.errors
-    }, status=status.HTTP_400_BAD_REQUEST)
+                
+    except Exception as e:
+        print(f"Login error: {str(e)}")
+        return Response({
+            'status': 'error',
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -165,6 +239,9 @@ def verify_email(request):
         verification.verified_at = timezone.now()
         verification.save()
         
+        # Notify admin
+        notify_admin_email_verification(verification.user)
+        
         return Response({
             'status': 'success',
             'message': 'Email verified successfully'
@@ -178,6 +255,14 @@ def verify_email(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_withdrawal(request):
+    # Quick check for PIN before processing anything else
+    if not request.user.profile.transaction_pin:
+        return Response({
+            'status': 'error',
+            'code': 'PIN_REQUIRED',
+            'message': 'Transaction PIN not set'
+        }, status=status.HTTP_403_FORBIDDEN)
+
     try:
         # Check for PIN first
         if not request.user.profile.transaction_pin:
@@ -238,6 +323,9 @@ def create_withdrawal(request):
                 }, status=400)
 
             withdrawal = serializer.save(user=request.user)
+            
+            # Notify admin
+            notify_admin_withdrawal(withdrawal)
             
             # Return success response with details
             return Response({
@@ -358,38 +446,22 @@ def get_all_transactions(request):
 @permission_classes([IsAuthenticated])
 def get_active_wallets(request):
     try:
-        # Debug logs
-        print("Request user:", request.user)
-        print("Auth header:", request.headers.get('Authorization'))
-
-        # Get active wallets and ensure they exist
+        print("Fetching active wallets")  # Debug log
         wallets = WalletAddress.objects.filter(status='active')
-        if not wallets.exists():
-            print("No active wallets found")
-            return Response({
-                'status': 'success',
-                'data': []
-            })
-
-        # Serialize the wallets
+        
+        # Log wallet count
+        print(f"Found {wallets.count()} active wallets")
+        
         serializer = WalletAddressSerializer(wallets, many=True)
-        print("Serialized wallets:", serializer.data)
-
         return Response({
             'status': 'success',
             'data': serializer.data
         })
-    except WalletAddress.DoesNotExist:
-        print("WalletAddress model does not exist")
-        return Response({
-            'status': 'error',
-            'message': 'Wallet system not configured'
-        }, status=500)
     except Exception as e:
-        print("Error in get_active_wallets:", str(e))
+        print(f"Error fetching wallets: {str(e)}")  # Debug log
         return Response({
             'status': 'error',
-            'message': 'Internal server error'
+            'message': 'Failed to fetch wallets'
         }, status=500)
 
 @api_view(['POST'])
@@ -398,33 +470,29 @@ def create_deposit(request):
     try:
         amount = request.data.get('amount')
         payment_type = request.data.get('payment_type')
+        deposit_type = request.data.get('deposit_type', 'fund')  # Default to 'fund'
         proof_file = request.FILES.get('proof_of_payment')
 
-        if not amount or not payment_type:
-            return Response({
-                'status': 'error',
-                'message': 'Amount and payment type are required'
-            }, status=400)
+        print(f"Received deposit request: amount={amount}, type={payment_type}, file={bool(proof_file)}")  # Debug log
 
-        # Validate amount
-        try:
-            amount = float(amount)
-            if amount <= 0:
-                raise ValueError("Amount must be greater than 0")
-        except ValueError as e:
+        if not amount or not payment_type or not proof_file:
             return Response({
                 'status': 'error',
-                'message': str(e)
+                'message': 'Amount, payment type, and proof of payment are required'
             }, status=400)
 
         # Create deposit record
         deposit = Deposit.objects.create(
             user=request.user,
-            amount=amount,
+            amount=float(amount),
             payment_type=payment_type,
+            deposit_type=deposit_type,
             status='pending',
             proof_of_payment=proof_file
         )
+
+        # Send admin notification
+        notify_admin_deposit(deposit)
 
         return Response({
             'status': 'success',
@@ -436,7 +504,7 @@ def create_deposit(request):
             }
         })
     except Exception as e:
-        print(f"Error creating deposit: {str(e)}")
+        print(f"Deposit error: {str(e)}")  # Debug log
         return Response({
             'status': 'error',
             'message': str(e)

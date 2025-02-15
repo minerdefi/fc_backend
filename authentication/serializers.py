@@ -50,6 +50,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source='user.last_name', read_only=True)
     total_withdrawals = serializers.SerializerMethodField()
     total_deposits = serializers.SerializerMethodField()
+    total_deposits = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    has_transaction_pin = serializers.SerializerMethodField()
 
     def get_total_withdrawals(self, obj):
         try:
@@ -61,11 +63,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_total_deposits(self, obj):
         try:
-            total = obj.user.deposit_set.filter(status='completed').aggregate(total=Sum('amount'))['total']
-            return f"{float(total or 0):.2f}"
-        except Exception as e:
-            print(f"Error calculating deposits: {e}")
+            return f"{float(obj.calculate_total_deposits):.2f}"
+        except (TypeError, ValueError):
             return "0.00"
+
+    def get_has_transaction_pin(self, obj):
+        return bool(obj.transaction_pin)
 
     def format_amount(self, amount):
         try:
@@ -101,7 +104,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ['username', 'email', 'first_name', 'last_name', 'phone_number', 
                  'balance', 'earnings', 'ADA', 'avail_balance', 'Tax_balance', 
                  'deposit', 'total_deposits', 'total_withdrawals', 'created_at',
-                 'transaction_pin']  # Add this field
+                 'transaction_pin', 'has_transaction_pin']  # Add this field
         read_only_fields = ['balance', 'earnings', 'ADA', 'avail_balance', 
                            'Tax_balance', 'deposit', 'total_deposits', 'total_withdrawals', 'created_at']
 
@@ -167,3 +170,4 @@ class WalletAddressSerializer(serializers.ModelSerializer):
             'memo',
             'description'
         ]
+

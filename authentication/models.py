@@ -6,6 +6,7 @@ import uuid
 from decimal import Decimal
 from django.contrib.auth import get_user_model
 from .utils import send_deposit_confirmation, send_withdrawal_approval
+from django.db.models import Sum
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -22,9 +23,31 @@ class Profile(models.Model):
     pin_otp_created = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    total_deposits = models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00'))
 
     def __str__(self):
         return f"{self.user.username}'s profile"
+
+    @property
+    def calculate_total_deposits(self):
+        total = Deposit.objects.filter(
+            user=self.user,
+            status='completed'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        return total
+
+    def save(self, *args, **kwargs):
+        self.total_deposits = self.calculate_total_deposits
+        super().save(*args, **kwargs)
+
+    def update_total_deposits(self):
+        """Update total deposits based on completed deposit transactions"""
+        completed_deposits = Deposit.objects.filter(
+            user=self.user,
+            status='completed'
+        ).aggregate(total=models.Sum('amount'))
+        self.total_deposits = completed_deposits['total'] or Decimal('0.00')
+        self.save()
 
 class ADATransaction(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='ada_transactions')
@@ -34,11 +57,30 @@ class ADATransaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        prev_balance = self.profile.ADA if is_new else ADATransaction.objects.get(pk=self.pk).profile.ADA
+
+        # Update ADA balance
         if self.transaction_type == 'credit':
             self.profile.ADA += self.amount
         else:
             self.profile.ADA -= self.amount
+        
+        new_balance = self.profile.ADA
         self.profile.save()
+
+        # Create transaction history record
+        if is_new:  # Only create history for new transactions
+            TransactionHistory.objects.create(
+                user=self.profile.user,
+                transaction_type='ada_update',
+                amount=self.amount,
+                previous_balance=prev_balance,
+                new_balance=new_balance,
+                status=self.transaction_type,  # 'credit' or 'debit'
+                description=f"ADA {self.transaction_type} - {self.description}"
+            )
+
         super().save(*args, **kwargs)
 
 class TaxTransaction(models.Model):
