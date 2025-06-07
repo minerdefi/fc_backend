@@ -1,8 +1,14 @@
 from django.shortcuts import render
+from django.http import JsonResponse
 
 # Create your views here.
 
-from django.http import JsonResponse
-
 def home(request):
     return JsonResponse({"message": "Hello AG!"})
+
+def health_check(request):
+    """Health check endpoint for Railway deployment"""
+    return JsonResponse({
+        "status": "healthy",
+        "message": "FG Premium backend is running"
+    })

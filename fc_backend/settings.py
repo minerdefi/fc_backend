@@ -15,7 +15,17 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-h9#9$2sxwu!#_7e)zwd3)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1', 
+    '.onrender.com',
+    '.railway.app',
+    '.up.railway.app'
+]
+
+# Railway-specific settings
+RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL')
+RAILWAY_VOLUME_MOUNT_PATH = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH')
 
 
 
@@ -52,7 +62,15 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://wondrous-crumble-ab82ec.netlify.app",
+    "https://fgpremiumfunds.com"
 ]
+
+# Add Railway domains for CORS
+if 'RAILWAY_ENVIRONMENT' in os.environ:
+    CORS_ALLOWED_ORIGINS.extend([
+        "https://*.railway.app",
+        "https://*.up.railway.app"
+    ])
 
 # Add wildcard for Render domains in development
 if DEBUG:
@@ -215,6 +233,38 @@ SIMPLE_JWT = {
     
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
-    
-    'JTI_CLAIM': 'jti',
+      'JTI_CLAIM': 'jti',
 }
+
+# Railway-specific optimizations
+if 'RAILWAY_ENVIRONMENT' in os.environ:
+    # Production settings for Railway
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # Railway provides these automatically
+    PORT = os.environ.get('PORT', 8000)
+    
+    # Logging configuration for Railway
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+            },
+        },
+        'root': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+        },
+    }
