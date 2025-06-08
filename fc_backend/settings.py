@@ -45,9 +45,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'api',
-    'contact',
-    'authentication',
+    'api.apps.ApiConfig',
+    'contact.apps.ContactConfig',
+    'authentication.apps.AuthenticationConfig',
 ]
 
 MIDDLEWARE = [
