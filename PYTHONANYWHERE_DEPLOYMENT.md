@@ -78,11 +78,26 @@ In the Web app configuration, add:
 - **Directory:** `/home/yourusername/fc_backend/media/`
 
 ### 6. Environment Variables
-Create a `.env` file in your project root:
+Create a `.env` file in your project root by copying the template:
+```bash
+# Copy the template file
+cp .env.pythonanywhere .env
+
+# Edit the .env file with your actual values
+nano .env
+```
+
+Update these key values in your `.env` file:
 ```bash
 DEBUG=False
-SECRET_KEY=your-very-secure-secret-key-here
-ALLOWED_HOSTS=yourusername.pythonanywhere.com
+SECRET_KEY=your-very-secure-secret-key-generate-new-one
+ALLOWED_HOSTS=yourusername.pythonanywhere.com,localhost,127.0.0.1
+FRONTEND_URL=https://your-frontend-domain.com
+```
+
+**Important:** Generate a new SECRET_KEY for production using:
+```bash
+python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
 ```
 
 ### 7. Update Settings for PythonAnywhere
