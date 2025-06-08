@@ -1,0 +1,29 @@
+# Requirements for PythonAnywhere deployment
+# Core Django packages
+asgiref==3.8.1
+Django==5.1
+django-cors-headers==4.7.0
+djangorestframework==3.15.2
+djangorestframework_simplejwt==5.4.0
+
+# Production server (not needed for PythonAnywhere, but good to have)
+gunicorn==23.0.0
+
+# Utilities
+packaging==24.2
+pillow==10.4.0
+PyJWT==2.10.1
+python-dotenv==1.0.1
+sqlparse==0.5.1
+typing_extensions==4.12.2
+tzdata==2024.1
+
+# Static files serving
+whitenoise==6.9.0
+
+# Database support (optional for PythonAnywhere)
+# dj-database-url==2.1.0
+# psycopg2-binary==2.9.9
+
+# Note: PythonAnywhere free tier uses SQLite by default
+# Uncomment database packages above if upgrading to paid tier with MySQL/PostgreSQL

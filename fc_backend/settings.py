@@ -19,18 +19,9 @@ ALLOWED_HOSTS = [
     'localhost', 
     '127.0.0.1', 
     '.onrender.com',
-    '.railway.app',
-    '.up.railway.app',
-    '.fly.dev',
-    'fgpremiumfunds.com',
-    'api.fgpremiumfunds.com'
+    '.pythonanywhere.com',
+    'fgpremiumfunds.com'
 ]
-
-# Platform-specific settings
-RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL')
-RAILWAY_VOLUME_MOUNT_PATH = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH')
-FLY_APP_NAME = os.environ.get('FLY_APP_NAME')
-FLY_REGION = os.environ.get('FLY_REGION')
 
 
 
@@ -70,27 +61,14 @@ CORS_ALLOWED_ORIGINS = [
     "https://fgpremiumfunds.com"
 ]
 
-# Add Railway domains for CORS
-if 'RAILWAY_ENVIRONMENT' in os.environ:
-    CORS_ALLOWED_ORIGINS.extend([
-        "https://*.railway.app",
-        "https://*.up.railway.app"
-    ])
-
-# Add Fly.io domains for CORS
-if 'FLY_APP_NAME' in os.environ:
-    CORS_ALLOWED_ORIGINS.extend([
-        "https://*.fly.dev",
-        f"https://{os.environ.get('FLY_APP_NAME')}.fly.dev"
-    ])
-
-# Add wildcard for Render domains in development
+# Add wildcard for development, specific origins for production
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    # Add your Render backend URL when you get it
+    # Add your PythonAnywhere and other production URLs
     CORS_ALLOWED_ORIGINS.extend([
-        # "https://your-app-name.onrender.com",
+        # Add your PythonAnywhere URL when you get it
+        # "https://yourusername.pythonanywhere.com",
     ])
 
 CORS_ALLOW_CREDENTIALS = True
@@ -242,41 +220,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
-    
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+      'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
-      'JTI_CLAIM': 'jti',
+    'JTI_CLAIM': 'jti',
 }
-
-# Railway-specific optimizations
-if 'RAILWAY_ENVIRONMENT' in os.environ:
-    # Production settings for Railway
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    
-    # Railway provides these automatically
-    PORT = os.environ.get('PORT', 8000)
-    
-    # Logging configuration for Railway
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-            },
-        },
-        'root': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
-        'loggers': {
-            'django': {
-                'handlers': ['console'],
-                'level': 'INFO',
-                'propagate': False,
-            },
-        },
-    }
