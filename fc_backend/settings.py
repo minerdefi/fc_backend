@@ -20,12 +20,17 @@ ALLOWED_HOSTS = [
     '127.0.0.1', 
     '.onrender.com',
     '.railway.app',
-    '.up.railway.app'
+    '.up.railway.app',
+    '.fly.dev',
+    'fgpremiumfunds.com',
+    'api.fgpremiumfunds.com'
 ]
 
-# Railway-specific settings
+# Platform-specific settings
 RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL')
 RAILWAY_VOLUME_MOUNT_PATH = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH')
+FLY_APP_NAME = os.environ.get('FLY_APP_NAME')
+FLY_REGION = os.environ.get('FLY_REGION')
 
 
 
@@ -70,6 +75,13 @@ if 'RAILWAY_ENVIRONMENT' in os.environ:
     CORS_ALLOWED_ORIGINS.extend([
         "https://*.railway.app",
         "https://*.up.railway.app"
+    ])
+
+# Add Fly.io domains for CORS
+if 'FLY_APP_NAME' in os.environ:
+    CORS_ALLOWED_ORIGINS.extend([
+        "https://*.fly.dev",
+        f"https://{os.environ.get('FLY_APP_NAME')}.fly.dev"
     ])
 
 # Add wildcard for Render domains in development
