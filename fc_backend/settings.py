@@ -24,7 +24,9 @@ ALLOWED_HOSTS = [
     '127.0.0.1', 
     '.onrender.com',
     '.pythonanywhere.com',
-    'https://api.fgpremiumfunds.com'
+    'fgpremiumfunds.com',
+    'api.fgpremiumfunds.com',
+    '.fgpremiumfunds.com'
 ]
 
 # Add hosts from environment variable if provided
@@ -66,7 +68,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://wondrous-crumble-ab82ec.netlify.app",
-    "https://fgpremiumfunds.com"
+    "https://fgpremiumfunds.com",
+    "https://api.fgpremiumfunds.com"
 ]
 
 # Add CORS origins from environment variable
@@ -204,14 +207,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email settings
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 1025
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your-email@example.com'
-EMAIL_HOST_PASSWORD = 'your-email-password'
-DEFAULT_FROM_EMAIL = 'noreply@forbespartners.com'
-CONTACT_FORM_EMAIL = 'contact@forbespartners.com'  # Where to send contact form submissions
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '1025'))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'your-email@example.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your-email-password')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@fgpremiumfunds.com')
+CONTACT_FORM_EMAIL = os.environ.get('CONTACT_FORM_EMAIL', 'contact@fgpremiumfunds.com')  # Where to send contact form submissions
 
 # Add these settings at the end of the file
 REST_FRAMEWORK = {
