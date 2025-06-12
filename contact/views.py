@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from .serializers import ContactSubmissionSerializer
 from django.core.mail import send_mail
 from django.conf import settings
@@ -9,6 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def submit_contact_form(request):
     logger.info(f"Contact form submission received from IP: {request.META.get('REMOTE_ADDR', 'Unknown')}")
     logger.info(f"Request data: {request.data}")
