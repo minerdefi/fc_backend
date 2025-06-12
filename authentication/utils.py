@@ -12,7 +12,7 @@ def send_verification_email(user, verification_token):
     }
     
     html_message = render_to_string('authentication/verification_email.html', context)
-      send_mail(
+    send_mail(
         subject='Verify your FG Premium Funds account',
         message=f'Please verify your email by clicking this link: {verification_url}',
         from_email=settings.DEFAULT_FROM_EMAIL,
@@ -31,7 +31,7 @@ def send_deposit_confirmation(user, deposit):
     }
     
     html_message = render_to_string('authentication/deposit_confirmation_email.html', context)
-      send_mail(
+    send_mail(
         subject='Deposit Confirmation - FG Premium Funds',
         message=f'Your deposit of ${deposit.amount} has been confirmed.',
         from_email=settings.DEFAULT_FROM_EMAIL,
@@ -50,7 +50,7 @@ def send_withdrawal_approval(user, withdrawal):
     }
     
     html_message = render_to_string('authentication/withdrawal_approval_email.html', context)
-      send_mail(
+    send_mail(
         subject='Withdrawal Approved - FG Premium Funds',
         message=f'Your withdrawal of ${withdrawal.amount} has been approved.',
         from_email=settings.DEFAULT_FROM_EMAIL,
