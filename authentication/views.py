@@ -142,19 +142,29 @@ def register_user(request):
 
         # Create user
         user = serializer.save()
-        
-        # Create email verification token
+          # Create email verification token
         verification = EmailVerification.objects.create(user=user)
         
-        # Send verification email
-        send_verification_email(user, verification.token)
+        # Send verification email (with error handling)
+        try:
+            send_verification_email(user, verification.token)
+            email_sent = True
+        except Exception as email_error:
+            logger.error(f"Failed to send verification email: {str(email_error)}")
+            email_sent = False
 
         # Generate tokens
         refresh = RefreshToken.for_user(user)
         
+        response_message = 'Registration successful.'
+        if email_sent:
+            response_message += ' Please check your email to verify your account.'
+        else:
+            response_message += ' Please contact support to verify your account.'
+        
         return Response({
             'status': 'success',
-            'message': 'Registration successful. Please check your email to verify your account.',
+            'message': response_message,
             'data': {
                 'user': {
                     'username': user.username,
@@ -165,7 +175,8 @@ def register_user(request):
                 'tokens': {
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
-                }
+                },
+                'email_sent': email_sent
             }
         }, status=status.HTTP_201_CREATED)
         
