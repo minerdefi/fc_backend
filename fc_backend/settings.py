@@ -24,7 +24,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1', 
     '.onrender.com',
     '.pythonanywhere.com',
-    'fgpremiumfunds.com'
+    'https://api.fgpremiumfunds.com'
 ]
 
 # Add hosts from environment variable if provided
@@ -131,8 +131,16 @@ WSGI_APPLICATION = 'fc_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# Use PostgreSQL/MySQL in production via DATABASE_URL, SQLite in development
-if 'DATABASE_URL' in os.environ:
+# Use SQLite for all environments (simplified for cPanel deployment)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+# Optional: Allow DATABASE_URL override if needed for other deployments
+if 'DATABASE_URL' in os.environ and os.environ.get('USE_DATABASE_URL', 'False').lower() == 'true':
     import dj_database_url
     DATABASES = {
         'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
@@ -144,13 +152,6 @@ if 'DATABASE_URL' in os.environ:
             'charset': 'utf8mb4',
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
 
 
 # Password validation

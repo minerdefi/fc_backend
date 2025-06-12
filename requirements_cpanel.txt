@@ -1,5 +1,5 @@
-# Requirements optimized for cPanel shared hosting
-# Some packages may need to be adjusted based on your hosting provider
+# Requirements optimized for cPanel shared hosting with SQLite
+# SQLite is built into Python, no additional database drivers needed
 
 # Core Django
 Django==5.1
@@ -7,14 +7,14 @@ djangorestframework==3.15.2
 djangorestframework_simplejwt==5.4.0
 django-cors-headers==4.7.0
 
-# Database
+# Database (optional - only needed if you want to use external databases)
 dj-database-url==2.1.0
-# MySQL support (most cPanel hosts use MySQL)
-mysqlclient==2.2.4
+# Uncomment below if you want MySQL support option
+# mysqlclient==2.2.4
 # Alternative MySQL driver if mysqlclient doesn't work
 # PyMySQL==1.1.1
 
-# PostgreSQL support (if your cPanel supports PostgreSQL)
+# Uncomment below if you want PostgreSQL support option
 # psycopg2-binary==2.9.9
 
 # Static files and media
