@@ -1,0 +1,78 @@
+# .dockerignore for Fly.io deployment
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Environment files
+.env
+.env.local
+.env.production
+fly.env
+
+# Documentation
+*.md
+README*
+
+# Deployment configs for other platforms
+render.yaml
+railway.json
+nixpacks.toml
+Procfile.railway
+.env.railway
+RAILWAY_DEPLOYMENT.md
+
+# Build artifacts
+node_modules/
+npm-debug.log*

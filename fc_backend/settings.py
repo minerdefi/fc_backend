@@ -29,7 +29,7 @@ ALLOWED_HOSTS = [
 
 # Add hosts from environment variable if provided
 if os.environ.get('ALLOWED_HOSTS'):
-    ALLOWED_HOSTS.extend(os.environ.get('ALLOWED_HOSTS').split(','))
+    ALLOWED_HOSTS.extend([host.strip() for host in os.environ.get('ALLOWED_HOSTS').split(',') if host.strip()])
 
 
 
@@ -69,14 +69,19 @@ CORS_ALLOWED_ORIGINS = [
     "https://fgpremiumfunds.com"
 ]
 
+# Add CORS origins from environment variable
+if os.environ.get('FRONTEND_URL'):
+    CORS_ALLOWED_ORIGINS.append(os.environ.get('FRONTEND_URL'))
+
 # Add wildcard for development, specific origins for production
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    # Add your PythonAnywhere and other production URLs
+    # Production CORS settings
     CORS_ALLOWED_ORIGINS.extend([
-        # Add your PythonAnywhere URL when you get it
-        # "https://yourusername.pythonanywhere.com",
+        "https://fgpremium.pythonanywhere.com",
+        # Add your cPanel URL when you get it
+        # "https://yourdomain.com",
     ])
 
 CORS_ALLOW_CREDENTIALS = True
@@ -126,12 +131,19 @@ WSGI_APPLICATION = 'fc_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# Use PostgreSQL in production, SQLite in development
+# Use PostgreSQL/MySQL in production via DATABASE_URL, SQLite in development
 if 'DATABASE_URL' in os.environ:
     import dj_database_url
     DATABASES = {
         'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
     }
+    # Handle MySQL specific settings for cPanel
+    if 'mysql' in os.environ.get('DATABASE_URL', '').lower():
+        DATABASES['default']['OPTIONS'] = {
+            'sql_mode': 'traditional',
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
 else:
     DATABASES = {
         'default': {

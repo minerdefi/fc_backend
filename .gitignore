@@ -55,8 +55,16 @@ Thumbs.db
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.production
+.env.development
+.env.staging
+.env.cpanel
+.env.pythonanywhere
+.env.render
+.env.railway
+.env.fly
 fly.env
 
 # Fly.io
