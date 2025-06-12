@@ -4,7 +4,7 @@ from django.template.loader import render_to_string
 from decimal import Decimal
 
 def send_verification_email(user, verification_token):
-    verification_url = f"http://localhost:3000/verify-email?token={verification_token}"
+    verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
     
     context = {
         'user': user,

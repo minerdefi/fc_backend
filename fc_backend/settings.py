@@ -216,6 +216,10 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your-email-password
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@fgpremiumfunds.com')
 CONTACT_FORM_EMAIL = os.environ.get('CONTACT_FORM_EMAIL', 'contact@fgpremiumfunds.com')  # Where to send contact form submissions
 
+# Additional email settings
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@fgpremiumfunds.com')  # For admin notifications
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://fgpremiumfunds.com')  # For email links
+
 # Add these settings at the end of the file
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

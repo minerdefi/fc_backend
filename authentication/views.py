@@ -39,23 +39,56 @@ from datetime import datetime, timedelta
 
 
 def notify_admin_email_verification(user):
-    subject = 'New Email Verification'
+    from django.template.loader import render_to_string
+    
+    subject = 'New Email Verification - FG Premium Funds'
+    
+    context = {
+        'notification_type': 'Email Verification',
+        'subject': 'A user has verified their email address',
+        'user': user,
+        'verified_at': user.emailverification.verified_at,
+        'admin_email': settings.ADMIN_EMAIL
+    }
+    
+    html_message = render_to_string('authentication/admin_notification_email.html', context)
+    
     message = f"""
     A user has verified their email address:
     Username: {user.username}
     Email: {user.email}
     Time: {user.emailverification.verified_at}
     """
+    
     send_mail(
         subject,
         message,
         settings.DEFAULT_FROM_EMAIL,
         [settings.ADMIN_EMAIL],
+        html_message=html_message,
         fail_silently=True
     )
 
 def notify_admin_deposit(deposit):
-    subject = 'New Deposit Request'
+    from django.template.loader import render_to_string
+    
+    subject = 'New Deposit Request - FG Premium Funds'
+    
+    context = {
+        'notification_type': 'Deposit Request',
+        'subject': 'A new deposit has been initiated',
+        'user': deposit.user,
+        'amount': deposit.amount,
+        'payment_type': deposit.payment_type,
+        'deposit_type': deposit.deposit_type,
+        'transaction_id': deposit.transaction_id,
+        'timestamp': deposit.created_at,
+        'action_required': 'Please review and approve this deposit in the admin panel.',
+        'admin_email': settings.ADMIN_EMAIL
+    }
+    
+    html_message = render_to_string('authentication/admin_notification_email.html', context)
+    
     message = f"""
     A new deposit has been initiated:
     User: {deposit.user.username}
@@ -65,11 +98,13 @@ def notify_admin_deposit(deposit):
     Transaction ID: {deposit.transaction_id}
     Time: {deposit.created_at}
     """
+    
     send_mail(
         subject,
         message,
         settings.DEFAULT_FROM_EMAIL,
         [settings.ADMIN_EMAIL],
+        html_message=html_message,
         fail_silently=True
     )
 
@@ -712,17 +747,26 @@ def forgot_password(request):
         reset_token = jwt.encode({
             'user_id': user.id,
             'exp': int((timezone.now() + timedelta(hours=1)).timestamp())
-        }, settings.SECRET_KEY, algorithm='HS256')
-
-        # Create reset URL
+        }, settings.SECRET_KEY, algorithm='HS256')        # Create reset URL
         reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
 
-        # Send simple email
+        # Prepare context for email template
+        context = {
+            'user': user,
+            'reset_url': reset_url
+        }
+
+        # Render HTML email template
+        from django.template.loader import render_to_string
+        html_message = render_to_string('authentication/password_reset_email.html', context)
+
+        # Send email with HTML template
         send_mail(
-            'Reset Your Password - Forbes Capital',
+            'Reset Your Password - FG Premium Funds',
             f'Click here to reset your password: {reset_url}\n\nThis link will expire in 1 hour.',
             settings.DEFAULT_FROM_EMAIL,
             [email],
+            html_message=html_message,
             fail_silently=False,
         )
 
